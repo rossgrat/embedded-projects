@@ -33,7 +33,7 @@ void main() {
 
     volatile int counter = 0;
     for (;;) {
-        if (counter == 2000000) {
+        if (counter == 10000) {
             // Flip light
             *gpiob_odr = *gpiob_odr ^ (1 << 7);
             counter = 0;

@@ -35,9 +35,14 @@ void Reset_Handler() {
     main();
 }
 
+void Hard_Fault() {
+    for(;;){}
+}
+
 
 __attribute__((section(".isr_vector")))
 Entry table[] = {
     { .address = (volatile uint32_t*)&_estack},
     { .handler = Reset_Handler},
+    { .handler = Hard_Fault},
 };

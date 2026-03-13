@@ -18,10 +18,12 @@ bin/blink.bin: bin/blink.elf
 
 .PHONY: dump flash
 flash: bin/blink.bin
-	st-flash write bin/blink.bin 0x08000000
+	probe-rs download --chip STM32L4R5ZITx --binary-format bin --base-address 0x08000000 --verify bin/blink.bin
+	probe-rs reset --chip STM32L4R5ZITx
 
 dump-main: bin/main.o
 	arm-none-eabi-objdump -h $<
 
 dump-elf: bin/blink.elf
 	arm-none-eabi-objdump -h $<
+	arm-none-eabi-objdump -d bin/blink.elf
