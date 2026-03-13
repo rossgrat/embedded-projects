@@ -13,7 +13,7 @@
 #define GPIOB_ODR_OFFSET    0x14
 #define GPIOB_ODR           (GPIOB_BASE + GPIOB_ODR_OFFSET)
 
-int main() {
+void main() {
 
     // Enable Port B (Pins GPIOB1, GPIOB2, etc.)
     volatile uint32_t* rcc_ahb2enr = (volatile uint32_t*)RCC_AHB2ENR;
@@ -25,4 +25,21 @@ int main() {
     *gpiob_moder = *gpiob_moder & ~(3 << 14);
     // Set output mode
     *gpiob_moder = *gpiob_moder | (1 << 14);
+
+
+    volatile uint32_t* gpiob_odr = (volatile uint32_t*)GPIOB_ODR;
+    // Reset
+    *gpiob_odr = *gpiob_odr & ~(1 << 7);
+
+    volatile int counter = 0;
+    for (;;) {
+        if (counter == 2000000) {
+            // Flip light
+            *gpiob_odr = *gpiob_odr ^ (1 << 7);
+            counter = 0;
+        } else {
+            counter++;
+        }
+    }
+
 }
