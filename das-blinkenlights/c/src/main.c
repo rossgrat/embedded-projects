@@ -45,8 +45,22 @@
 #define REG(addr) (*(volatile uint32_t*)(addr))
 
 void toggleLight() {
-    REG(TIM6_SR) = 0;
     REG(GPIOB_ODR) ^= (1 << 7);
+
+    // It is necessary to read the interrupt register after our write
+    // and BEFORE returning from the interrupt handler, because the
+    // write takes several cycles to propagate across the APB bus. The
+    // hardware guarantees read-after-write, so by waiting for a read,
+    // we guarantee that the write has propagated to the register before
+    // returning from the interrupt handler.
+    //
+    // If we were to write the interrupt register, then immediately return
+    // from the interrupt handler, the NVIC would see the UIF still set,
+    // the interrupt request line still high, and would "tail chain" back into
+    // the interrupt handler. This gives the appearance of the light never
+    // blinking.
+    REG(TIM6_SR) = 0; // Reset Interrupt Register
+    (void)REG(TIM6_SR); // Read Interrupt Register
 }
 
 void main() {
@@ -86,6 +100,5 @@ void main() {
     // Enable TIM6
     REG(TIM6_CR1) |= 1;
 
-    for (;;){
-    }
+    for (;;){}
 }
