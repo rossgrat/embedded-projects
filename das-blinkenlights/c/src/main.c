@@ -50,9 +50,9 @@ void toggleLight() {
     // It is necessary to read the interrupt register after our write
     // and BEFORE returning from the interrupt handler, because the
     // write takes several cycles to propagate across the APB bus. The
-    // hardware guarantees read-after-write, so by waiting for a read,
-    // we guarantee that the write has propagated to the register before
-    // returning from the interrupt handler.
+    // hardware guarantees read-after-write ordering on the same peripheral,
+    // so by waiting for a read, we guarantee that the write has propagated
+    // to the register before returning from the interrupt handler.
     //
     // If we were to write the interrupt register, then immediately return
     // from the interrupt handler, the NVIC would see the UIF still set,
@@ -78,6 +78,9 @@ void main() {
     // Reset
     *((volatile uint32_t*)GPIOB_ODR) &= ~(1 << 7);
 
+
+    // Start using REG to avoid duplicate code, code above
+    // is kept as an example.
 
     // Start configure basic timer
     // Enable Timer 6 (Basic Timer)
