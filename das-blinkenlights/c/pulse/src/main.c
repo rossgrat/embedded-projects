@@ -115,6 +115,10 @@ void main() {
     // Enable Compare and Capture on channel 2
     REG(TIM4_CCER) |= (1 << 4);
     // PSC and ARR - We want a refresh rate of 1kHz
+    // ARR controls the potential steps in the duty cycle. Since we're
+    // utilizing the compare feature of the timer (as PWM), this means that
+    // when the counter is > CCR2, light is off, when counter < CCR2, light
+    // is on.
     REG(TIM4_PSC) = 39;
     REG(TIM4_ARR) = 99;
     // Light starts dark
