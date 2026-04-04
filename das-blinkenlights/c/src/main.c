@@ -87,8 +87,5 @@ void main() {
     REG(TIM6_CR1) |= 1;
 
     for (;;){
-        // if (REG(TIM6_SR) == 1) {
-        //     toggleLight();
-        // }
     }
 }
