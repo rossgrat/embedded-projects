@@ -7,6 +7,7 @@ typedef union {
 } Entry;
 
 void main(void);
+void toggleLight(void);
 
 extern uint32_t _estack;
 extern uint32_t _sdata;
@@ -40,9 +41,17 @@ void Hard_Fault() {
 }
 
 
+//
+// The  [0] = ... syntax is C syntax for a designated array.
+// Each vector table entry is 4 bytes, and must be in the correct address
+// spot for the designated interrupt. Here we are only setting some
+// array entries, the rest are initialzed to 0, which the vector table
+// understands to be a no-op.
+
 __attribute__((section(".isr_vector")))
-Entry table[] = {
-    { .address = (volatile uint32_t*)&_estack},
-    { .handler = Reset_Handler},
-    { .handler = Hard_Fault},
+Entry table[71] = {
+    [0] = { .address = (volatile uint32_t*)&_estack},
+    [1] = { .handler = Reset_Handler},
+    [2] = { .handler = Hard_Fault},
+    [70] = {.handler = toggleLight}     // TIM6 Interrupt Address: 0x0000 0118 / 0x118 = 280 / 4 = 70
 };

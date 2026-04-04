@@ -2,6 +2,8 @@
 
 #define RCC_BASE            0x40021000
 #define GPIOB_BASE          0x48000400
+// Timers are driven by SYSCLK. The default source for SYSCLK is MSI (Multi-speed Internal Oscillator)
+// at 4MHz
 #define TIM6_BASE           0x40001000
 
 // RCC_AHB2ENR = Reset Clock Control, Advance High-Speed Bus 2, Enable Register
@@ -14,47 +16,79 @@
 #define GPIOB_ODR_OFFSET    0x14
 #define GPIOB_ODR           (GPIOB_BASE + GPIOB_ODR_OFFSET)
 
+// RCC_APB1ENR1 = Reset Clock Control, Advanced Peripheral Bus 1, Enable Register 1
 #define RCC_APB1ENR1_OFFSET 0x58
 #define RCC_APB1ENR1        (RCC_BASE + RCC_APB1ENR1_OFFSET)
 
 #define TIMX_CR1            0x00                                // Timer Control Register
 #define TIMX_DIER           0x0C                                // DMA/Interrupt Register
 #define TIMX_SR             0x10                                // Status Register
-#define TIMX_CNT            0x24                                // Counter
+// #define TIMX_CNT            0x24                                // Counter
 #define TIMX_PSC            0x28                                // Prescaler
 #define TIMX_ARR            0x2C                                // Auto-Reload Register
 
+#define TIM6_CR1            (TIM6_BASE + TIMX_CR1)
+#define TIM6_SR             (TIM6_BASE + TIMX_SR)
+#define TIM6_DIER           (TIM6_BASE + TIMX_DIER)
+#define TIM6_PSC            (TIM6_BASE + TIMX_PSC)
+#define TIM6_ARR            (TIM6_BASE + TIMX_ARR)
+
+
+// ARM Core functionality, including the NVIC controller, is distinct from
+// ST designed peripherals
+#define NVIC_BASE 0xE000E000
+#define NVIC_ISERX_OFFSET 0x100
+#define NVIC_ISER1_OFFSET 0x04
+#define NVIC_ISER1 (NVIC_BASE + NVIC_ISERX_OFFSET + NVIC_ISER1_OFFSET)
+
+// The code below introduces a way of avoiding the verbose declaration
+#define REG(addr) (*(volatile uint32_t*)(addr))
+
+void toggleLight() {
+    REG(TIM6_SR) = 0;
+    REG(GPIOB_ODR) ^= (1 << 7);
+}
+
 void main() {
 
+    // Start configure blue light
     // Enable Port B (Pins GPIOB1, GPIOB2, etc.)
-    volatile uint32_t* rcc_ahb2enr = (volatile uint32_t*)RCC_AHB2ENR;
-    *rcc_ahb2enr = *rcc_ahb2enr | (1 << 1);
+    *((volatile uint32_t*)RCC_AHB2ENR) |= (1 << 1);
 
     // Set Port B mode to output (01 = General Purpose Output)
-    volatile uint32_t* gpiob_moder = (volatile uint32_t*)GPIOB_MODER;
     // Reset pin values
-    *gpiob_moder = *gpiob_moder & ~(3 << 14);
+    *((volatile uint32_t*)GPIOB_MODER) &= ~(3 << 14);
     // Set output mode
-    *gpiob_moder = *gpiob_moder | (1 << 14);
+    *((volatile uint32_t*)GPIOB_MODER) |= (1 << 14);
 
-    // Enable Timer 6 (Basic Timer)
-    volatile uint32_t* rcc_apb1enr1 = (volatile uint32_t*)RCC_APB1ENR1;
-    *rcc_apb1enr1 = *rcc_apb1enr1 | (1 << 4);
-
-
-    volatile uint32_t* gpiob_odr = (volatile uint32_t*)GPIOB_ODR;
     // Reset
-    *gpiob_odr = *gpiob_odr & ~(1 << 7);
+    *((volatile uint32_t*)GPIOB_ODR) &= ~(1 << 7);
 
-    volatile int counter = 0;
-    for (;;) {
-        if (counter == 10000) {
-            // Flip light
-            *gpiob_odr = *gpiob_odr ^ (1 << 7);
-            counter = 0;
-        } else {
-            counter++;
-        }
+
+    // Start configure basic timer
+    // Enable Timer 6 (Basic Timer)
+    REG(RCC_APB1ENR1) |= (1 << 4);
+
+    // CLK = SYSCLK / (PSC + 1)
+    // 1kHz = 4MHz / (3999 + 1)
+    REG(TIM6_PSC) = 3999;
+
+    // ARR = 999
+    // 1 Second = 1 / (1000 * (ARR + 1))
+    REG(TIM6_ARR) = 999;
+
+    // Enable interrupts
+    REG(TIM6_DIER)= 1;
+
+    // Setup NVIC
+    REG(NVIC_ISER1) |= (1 << 22);
+
+    // Enable TIM6
+    REG(TIM6_CR1) |= 1;
+
+    for (;;){
+        // if (REG(TIM6_SR) == 1) {
+        //     toggleLight();
+        // }
     }
-
 }
