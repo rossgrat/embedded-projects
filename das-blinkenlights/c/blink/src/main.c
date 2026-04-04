@@ -10,11 +10,13 @@
 #define RCC_AHB2ENR_OFFSET  0x4C
 #define RCC_AHB2ENR         (RCC_BASE + RCC_AHB2ENR_OFFSET)
 
-#define GPIOB_MODER_OFFSET  0x00
-#define GPIOB_MODER         (GPIOB_BASE + GPIOB_MODER_OFFSET)
+#define GPIOX_ODR    0x14
+#define GPIOX_MODER  0x00
+#define GPIOX_AFRL   0x20
 
-#define GPIOB_ODR_OFFSET    0x14
-#define GPIOB_ODR           (GPIOB_BASE + GPIOB_ODR_OFFSET)
+#define GPIOB_ODR           (GPIOB_BASE + GPIOX_ODR)
+#define GPIOB_MODER         (GPIOB_BASE + GPIOX_MODER)
+#define GPIOB_AFRL          (GPIOB_BASE + GPIOX_AFRL)
 
 // RCC_APB1ENR1 = Reset Clock Control, Advanced Peripheral Bus 1, Enable Register 1
 #define RCC_APB1ENR1_OFFSET 0x58
@@ -67,16 +69,15 @@ void main() {
 
     // Start configure blue light
     // Enable Port B (Pins GPIOB1, GPIOB2, etc.)
-    *((volatile uint32_t*)RCC_AHB2ENR) |= (1 << 1);
+    REG(RCC_AHB2ENR) |= (1 << 1);
 
-    // Set Port B mode to output (01 = General Purpose Output)
+    // Set Port B mode to output (01 = Output)
     // Reset pin values
-    *((volatile uint32_t*)GPIOB_MODER) &= ~(3 << 14);
+    REG(GPIOB_MODER) &= ~(3 << 14);
     // Set output mode
-    *((volatile uint32_t*)GPIOB_MODER) |= (1 << 14);
-
+    REG(GPIOB_MODER) |= (1 << 14);
     // Reset
-    *((volatile uint32_t*)GPIOB_ODR) &= ~(1 << 7);
+    REG(GPIOB_ODR) &= ~(1 << 7);
 
 
     // Start using REG to avoid duplicate code, code above
