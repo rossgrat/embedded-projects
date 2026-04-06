@@ -1,6 +1,8 @@
 # Das Blinkenlights — Bare Metal LED Blink on STM32L4R5ZI
 
 [Reference Manual](https://www.st.com/resource/en/reference_manual/rm0432-stm32l4-series-advanced-armbased-32bit-mcus-stmicroelectronics.pdf)
+[Datasheet](https://www.st.com/resource/en/datasheet/stm32l496ae.pdf)
+[ARM Cortex Manual](https://www.st.com/resource/en/programming_manual/dm00046982-stm32-cortex-m4-mcus-and-mpus-programming-manual-stmicroelectronics.pdf)
 
 ## Goal
 
